@@ -67,3 +67,6 @@ $routes->get('/index.html', function() {
     return redirect()->to(base_url('landing'));
 });
 
+// Transaction Routes
+$routes->post('transaction/updateStatus/(:num)', 'Cart::updateStatus/$1', ['filter' => 'auth']);
+$routes->get('transaction', 'Cart::transaction', ['filter' => 'auth']);

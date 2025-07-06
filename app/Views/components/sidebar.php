@@ -37,6 +37,12 @@
           </a>
       </li><!-- End Profile Nav -->
 
+      <li class="nav-item">
+        <a class="nav-link <?php echo (uri_string() == 'sales') ? "" : "collapsed" ?>" href="transaction">
+          <i class="bi bi-cash-stack"></i>
+          <span>Sales</span>
+        </a>
+      </li><!-- End Sales Nav -->
     </ul>
 
   </aside><!-- End Sidebar-->

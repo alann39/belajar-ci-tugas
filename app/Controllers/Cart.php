@@ -183,4 +183,20 @@ class Cart extends BaseController
             'count' => $cartCount
         ]);
     }
+
+    public function updateStatus($id)
+    {
+        $status = $this->request->getPost('status');
+        if ($this->transaction->updateStatus($id, $status)) {
+            return redirect()->to(base_url('transaction'))->with('success', 'Status transaksi berhasil diperbarui.');
+        } else {
+            return redirect()->to(base_url('transaction'))->with('error', 'Gagal memperbarui status transaksi.');
+        }
+    }
+
+    public function transaction()
+    {
+        $data['transactions'] = $this->transaction->findAll();
+        return view('v_penjualan', $data);
+    }
 }

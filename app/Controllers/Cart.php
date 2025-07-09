@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\TransactionModel;
 use App\Models\TransactionDetailModel;
+use Dompdf\Dompdf;
 
 class Cart extends BaseController
 {
@@ -198,5 +199,105 @@ class Cart extends BaseController
     {
         $data['transactions'] = $this->transaction->findAll();
         return view('v_penjualan', $data);
+    }
+
+    public function downloadPDF()
+    {
+        // Get data from database
+        $transactions = $this->transaction->findAll();
+        
+        // Pass data to PDF view
+        $html = view('v_penjualanPDF', ['transactions' => $transactions]);
+        
+        // Set the PDF filename
+        $filename = 'Laporan_Penjualan_' . date('Y-m-d_H-i-s') . '.pdf';
+        
+        // Instantiate and use the dompdf class
+        $dompdf = new Dompdf();
+        
+        // Load HTML content
+        $dompdf->loadHtml($html);
+        
+        // Setup the paper size and orientation
+        $dompdf->setPaper('A4', 'landscape');
+        
+        // Render HTML as PDF
+        $dompdf->render();
+        
+        // Output the generated PDF
+        $dompdf->stream($filename, array("Attachment" => false));
+    }
+
+    public function downloadExcel()
+    {
+        // Get data from database
+        $transactions = $this->transaction->findAll();
+        
+        // Set filename
+        $filename = 'Laporan_Penjualan_' . date('Y-m-d_H-i-s') . '.csv';
+        
+        // Set headers for CSV download
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+        
+        // Create output stream
+        $output = fopen('php://output', 'w');
+        
+        // Add BOM for proper UTF-8 encoding in Excel
+        fwrite($output, "\xEF\xBB\xBF");
+        
+        // Add report header
+        fputcsv($output, ['LAPORAN PENJUALAN']);
+        fputcsv($output, ['Tanggal Cetak: ' . date('d F Y H:i:s')]);
+        fputcsv($output, ['']);
+        
+        // Add summary information
+        if (!empty($transactions)) {
+            $totalPenjualan = array_sum(array_column($transactions, 'total_harga'));
+            $totalOngkir = array_sum(array_column($transactions, 'ongkir'));
+            $transaksiSelesai = count(array_filter($transactions, function($t) { return $t['status'] == '1'; }));
+            $transaksiBelumSelesai = count($transactions) - $transaksiSelesai;
+            
+            fputcsv($output, ['RINGKASAN']);
+            fputcsv($output, ['Total Transaksi', count($transactions)]);
+            fputcsv($output, ['Total Penjualan', 'Rp ' . number_format($totalPenjualan, 0, ',', '.')]);
+            fputcsv($output, ['Total Ongkir', 'Rp ' . number_format($totalOngkir, 0, ',', '.')]);
+            fputcsv($output, ['Transaksi Selesai', $transaksiSelesai]);
+            fputcsv($output, ['Transaksi Belum Selesai', $transaksiBelumSelesai]);
+            fputcsv($output, ['']);
+        }
+        
+        // CSV headers
+        fputcsv($output, [
+            'No',
+            'ID Transaksi',
+            'Username',
+            'Total Harga',
+            'Alamat',
+            'Ongkir',
+            'Status',
+            'Tanggal Transaksi'
+        ]);
+        
+        // Add data rows
+        if (!empty($transactions)) {
+            foreach ($transactions as $index => $item) {
+                fputcsv($output, [
+                    $index + 1,
+                    $item['id'],
+                    $item['username'],
+                    'Rp ' . number_format($item['total_harga'], 0, ',', '.'),
+                    $item['alamat'],
+                    'Rp ' . number_format($item['ongkir'], 0, ',', '.'),
+                    ($item['status'] == "1") ? "Sudah Selesai" : "Belum Selesai",
+                    date('d/m/Y H:i', strtotime($item['created_at']))
+                ]);
+            }
+        }
+        
+        fclose($output);
+        exit;
     }
 }

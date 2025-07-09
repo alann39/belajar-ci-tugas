@@ -54,4 +54,43 @@ class Home extends BaseController
 
         return view('v_profile', $data);
     }
+
+    public function uploadBuktiTransfer()
+    {
+        $transactionId = $this->request->getPost('transaction_id');
+        $file = $this->request->getFile('bukti_transfer');
+        
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'File tidak valid atau tidak ditemukan');
+        }
+
+        // Validasi file
+        $validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!in_array($file->getMimeType(), $validTypes)) {
+            return redirect()->back()->with('error', 'Hanya file gambar yang diizinkan (JPEG, JPG, PNG, GIF)');
+        }
+
+        // Maksimal 5MB
+        if ($file->getSize() > 5 * 1024 * 1024) {
+            return redirect()->back()->with('error', 'Ukuran file maksimal 5MB');
+        }
+
+        // Generate nama file unik
+        $newName = 'bukti_' . $transactionId . '_' . time() . '.' . $file->getExtension();
+        
+        // Pastikan direktori upload ada
+        $uploadPath = FCPATH . 'assets/images/bukti_transfer/';
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
+        }
+
+        // Pindahkan file
+        if ($file->move($uploadPath, $newName)) {
+            // Update database
+            $this->transaction->update($transactionId, ['bukti_transfer' => $newName]);
+            return redirect()->back()->with('success', 'Bukti transfer berhasil diupload');
+        } else {
+            return redirect()->back()->with('error', 'Gagal mengupload file');
+        }
+    }
 }

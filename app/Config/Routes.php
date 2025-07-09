@@ -43,6 +43,7 @@ $routes->get('/login', 'Login::index', ['filter' => 'auth']);
 
 // Profile Routes
 $routes->get('profile', 'Home::profile', ['filter' => 'auth']);
+$routes->post('upload-bukti-transfer', 'Home::uploadBuktiTransfer', ['filter' => 'auth']);
 
 //REST API
 $routes->resource('api', ['controller' => 'apiController']);
@@ -70,3 +71,5 @@ $routes->get('/index.html', function() {
 // Transaction Routes
 $routes->post('transaction/updateStatus/(:num)', 'Cart::updateStatus/$1', ['filter' => 'auth']);
 $routes->get('transaction', 'Cart::transaction', ['filter' => 'auth']);
+$routes->get('transaction/downloadPDF', 'Cart::downloadPDF', ['filter' => 'auth']);
+$routes->get('transaction/downloadExcel', 'Cart::downloadExcel', ['filter' => 'auth']);

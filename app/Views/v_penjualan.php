@@ -9,6 +9,23 @@
     <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
 <?php endif; ?>
 
+<!-- Download Report Buttons -->
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <a href="<?= base_url('transaction/downloadPDF') ?>" class="btn btn-danger me-2">
+                <i class="bi bi-file-earmark-pdf"></i> Download PDF
+            </a>
+            <a href="<?= base_url('transaction/downloadExcel') ?>" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Download Excel
+            </a>
+        </div>
+        <div class="col-md-6 text-end">
+            <small class="text-muted">Total Transaksi: <?= count($transactions) ?></small>
+        </div>
+    </div>
+</div>
+
 <div class="table-responsive">
     <table class="table table-striped table-bordered">
         <thead>
